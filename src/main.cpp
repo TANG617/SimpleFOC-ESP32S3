@@ -17,10 +17,10 @@ MagneticSensorI2C sensor = MagneticSensorI2C(AS5600_I2C);
 TwoWire I2Cone = TwoWire(0);
 
 BLDCMotor motor = BLDCMotor(11);
-BLDCDriver3PWM driver = BLDCDriver3PWM(16, 17, 18);
+BLDCDriver3PWM driver = BLDCDriver3PWM(2, 3, 4,1);
 
 // velocity set point variable
-float target_velocity = 250;
+float target_velocity = 10;
 // instantiate the commander
 Commander command = Commander(Serial);
 void doTarget(char* cmd) { command.scalar(&target_velocity, cmd); }
@@ -28,7 +28,7 @@ void doTarget(char* cmd) { command.scalar(&target_velocity, cmd); }
 void setup() {
 
   // initialise magnetic sensor hardware
-  I2Cone.begin(1,2, 400000UL);   //SDA0,SCL0
+  I2Cone.begin(10,9, 400000UL);   //SDA0,SCL0
   // initialise magnetic sensor hardware
   sensor.init(&I2Cone);
   // sensor.init();
@@ -50,10 +50,10 @@ void setup() {
 
   // velocity PI controller parameters
   motor.PID_velocity.P = 0.2f;
-  motor.PID_velocity.I = 20;
+  motor.PID_velocity.I = 10;
   motor.PID_velocity.D = 0;
   // default voltage_power_supply
-  motor.voltage_limit = 6;
+  motor.voltage_limit = 12;
   // jerk control using voltage voltage ramp
   // default value is 300 volts per sec  ~ 0.3V per millisecond
   motor.PID_velocity.output_ramp = 1000;
@@ -75,7 +75,7 @@ void setup() {
 
   // add target command T
   command.add('T', doTarget, "target velocity");
-
+  // motor.useMonitoring(Serial);
   Serial.println(F("Motor ready."));
   Serial.println(F("Set the target velocity using serial terminal:"));
   _delay(1000);
@@ -88,11 +88,14 @@ void loop() {
   // Bluepill loop ~10kHz
   motor.loopFOC();
 
+  // motor.monitor();
+
   // Motion control function
   // velocity, position or voltage (defined in motor.controller)
   // this function can be run at much lower frequency than loopFOC() function
   // You can also use motor.move() and set the motor.target in the code
   motor.move(target_velocity);
+  Serial.println(sensor.getSensorAngle());
 
   // function intended to be used with serial plotter to monitor motor variables
   // significantly slowing the execution down!!!!
