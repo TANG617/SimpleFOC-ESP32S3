@@ -26,6 +26,9 @@ Commander command = Commander(Serial);
 void doTarget(char* cmd) { command.scalar(&target_velocity, cmd); }
 
 void setup() {
+    // use monitoring with serial
+  Serial.begin(115200);
+  Serial.println("OK");
 
   // initialise magnetic sensor hardware
   I2Cone.begin(10,9, 400000UL);   //SDA0,SCL0
@@ -50,7 +53,7 @@ void setup() {
 
   // velocity PI controller parameters
   motor.PID_velocity.P = 0.2f;
-  motor.PID_velocity.I = 10;
+  motor.PID_velocity.I = 20;
   motor.PID_velocity.D = 0;
   // default voltage_power_supply
   motor.voltage_limit = 12;
@@ -63,8 +66,7 @@ void setup() {
   // the lower the less filtered
   motor.LPF_velocity.Tf = 0.01f;
 
-  // use monitoring with serial
-  Serial.begin(115200);
+
   // comment out if not needed
   motor.useMonitoring(Serial);
 
@@ -75,7 +77,7 @@ void setup() {
 
   // add target command T
   command.add('T', doTarget, "target velocity");
-  // motor.useMonitoring(Serial);
+  motor.useMonitoring(Serial);
   Serial.println(F("Motor ready."));
   Serial.println(F("Set the target velocity using serial terminal:"));
   _delay(1000);
@@ -96,7 +98,6 @@ void loop() {
   // You can also use motor.move() and set the motor.target in the code
   motor.move(target_velocity);
   Serial.println(sensor.getSensorAngle());
-
   // function intended to be used with serial plotter to monitor motor variables
   // significantly slowing the execution down!!!!
   // motor.monitor();
