@@ -11,7 +11,7 @@
  *
  */
 #include <SimpleFOC.h>
-
+#define Serial Serial0
 
 MagneticSensorI2C sensor = MagneticSensorI2C(AS5600_I2C);
 TwoWire I2Cone = TwoWire(0);
@@ -20,7 +20,7 @@ BLDCMotor motor = BLDCMotor(11);
 BLDCDriver3PWM driver = BLDCDriver3PWM(2, 3, 4,1);
 
 // velocity set point variable
-float target_velocity = 10;
+float target_velocity = 1;
 // instantiate the commander
 Commander command = Commander(Serial);
 void doTarget(char* cmd) { command.scalar(&target_velocity, cmd); }
@@ -31,7 +31,7 @@ void setup() {
   Serial.println("OK");
 
   // initialise magnetic sensor hardware
-  I2Cone.begin(10,9, 400000UL);   //SDA0,SCL0
+  I2Cone.begin(10,9, 400000UL);   //SDA0,SCL0=10,9
   // initialise magnetic sensor hardware
   sensor.init(&I2Cone);
   // sensor.init();
@@ -52,9 +52,9 @@ void setup() {
   // default parameters in defaults.h
 
   // velocity PI controller parameters
-  motor.PID_velocity.P = 0.2f;
-  motor.PID_velocity.I = 20;
-  motor.PID_velocity.D = 0;
+  motor.PID_velocity.P = 1;
+  motor.PID_velocity.I = 1.2;
+  // motor.PID_velocity.D = 0.01f;
   // default voltage_power_supply
   motor.voltage_limit = 12;
   // jerk control using voltage voltage ramp
@@ -64,11 +64,12 @@ void setup() {
   // velocity low pass filtering
   // default 5ms - try different values to see what is the best.
   // the lower the less filtered
-  motor.LPF_velocity.Tf = 0.01f;
+  motor.LPF_velocity.Tf = 0.05f;
 
 
   // comment out if not needed
   motor.useMonitoring(Serial);
+  motor.monitor_variables = _MON_TARGET | _MON_VEL | _MON_ANGLE; 
 
   // initialize motor
   motor.init();
@@ -97,7 +98,10 @@ void loop() {
   // this function can be run at much lower frequency than loopFOC() function
   // You can also use motor.move() and set the motor.target in the code
   motor.move(target_velocity);
-  Serial.println(sensor.getSensorAngle());
+  Serial.print(sensor.getVelocity()/(2*PI));
+  // Serial.print(" ");
+  // Serial.print(sensor.getAngle());
+  Serial.print("\n");
   // function intended to be used with serial plotter to monitor motor variables
   // significantly slowing the execution down!!!!
   // motor.monitor();
