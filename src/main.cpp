@@ -24,6 +24,7 @@ TwoWire I2Cone = TwoWire(0);
 
 BLDCMotor motor = BLDCMotor(11);
 BLDCDriver3PWM driver = BLDCDriver3PWM(2, 3, 4,1);
+InlineCurrentSense current_sense  = InlineCurrentSense(0.01, 50, _NC, 45, 46);
 
 
 // BLDC motor & driver instance
@@ -49,11 +50,13 @@ void setup() {
   // link the motor to the sensor
   motor.linkSensor(&sensor);
 
+
   // driver config
   // power supply voltage [V]
   driver.voltage_power_supply = 12;
   driver.init();
   // link driver
+  current_sense.linkDriver(&driver);
   motor.linkDriver(&driver);
 
   // choose FOC modulation
@@ -86,6 +89,12 @@ void setup() {
   // initialise motor
   motor.init();
   // align encoder and start FOC
+
+  // 初始化电流检测
+  current_sense.init();
+  // 连接电流检测和电机
+  motor.linkCurrentSense(&current_sense);
+  current_sense.skip_align = true;
   motor.initFOC();
 
   // set the inital target value
