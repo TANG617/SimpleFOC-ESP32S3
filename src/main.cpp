@@ -63,7 +63,7 @@ void setup() {
   motor.foc_modulation = FOCModulationType::SinePWM;
 
   // set control loop type to be used
-  motor.controller = MotionControlType::velocity;
+  motor.controller = MotionControlType::angle;
 
   // contoller configuration based on the control type
   motor.PID_velocity.P = 0.2f;
