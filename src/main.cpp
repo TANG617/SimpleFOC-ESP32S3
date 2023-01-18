@@ -11,7 +11,14 @@
  * See more info in docs.simplefoc.com/commander_interface
  */
 #include <SimpleFOC.h>
+
 #define Serial Serial0
+
+//Alpha
+
+// #define RX 16
+// #define TX 15
+//Beta
 
 // magnetic sensor instance - SPI
 // MagneticSensorSPI sensor = MagneticSensorSPI(AS5147_SPI, 10);
@@ -40,8 +47,22 @@ void onMotor(char* cmd){ command.motor(&motor, cmd); }
 // void onPID(char*cmd){commander.pid(&pid, cmd)}
 // commander.pid(&pid, cmd)
 
-void setup() {
+int incomingByte = 0;
 
+void setup() {
+  Serial2.begin(9600);
+  Serial.begin(115200);
+  while (1)
+  {
+    Serial.println("Start!");
+    // delay(random()%1000);
+    // Serial2.println("This is B");
+    incomingByte=Serial2.read();
+    Serial.println(incomingByte, DEC);
+    // delay(random()%1000);
+  }
+  
+  
   // initialise magnetic sensor hardware
   // sensor.init();
   I2Cone.begin(10,9, 400000UL);   //SDA0,SCL0=10,9
