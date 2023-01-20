@@ -10,6 +10,7 @@
  *
  * See more info in docs.simplefoc.com/commander_interface
  */
+//AVP 3 AVF0.5
 #include <SimpleFOC.h>
 #define Serial Serial0
 
