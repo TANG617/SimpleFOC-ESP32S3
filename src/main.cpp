@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include<Arduino.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 
@@ -6,7 +7,6 @@
 DeserializationError json_error;
 #define Serial Serial0
 DynamicJsonDocument doc_json(1024);
-
 char input_json[1000];
 
 // WiFi
@@ -74,5 +74,6 @@ void setup() {
 
 
 void loop() {
+  
  client.loop();
 }
