@@ -1,95 +1,87 @@
-/*
- *  This sketch sends data via HTTP GET requests to data.sparkfun.com service.
- *
- *  You need to get streamId and privateKey at data.sparkfun.com and paste them
- *  below. Or just customize this script to talk to other HTTP servers.
- *
- */
-
 #include <WiFi.h>
-#include <Arduino.h>
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+
+DeserializationError json_error;
 #define Serial Serial0
+DynamicJsonDocument doc_json(1024);
 
-const char* ssid     = "HOME";
-const char* password = "T20030617";
+char input_json[1000];
 
-const char* host = "data.sparkfun.com";
-const char* streamId   = "....................";
-const char* privateKey = "....................";
+// WiFi
+const char *ssid = "HOME"; // Enter your WiFi name
+const char *password = "T20030617";  // Enter WiFi password
 
-void setup()
-{
-    Serial.begin(115200);
-    delay(10);
+// MQTT Broker
+const char *mqtt_broker = "192.168.31.87";
+const char *topic = "motor";
+const char *mqtt_username = NULL;
+const char *mqtt_password = NULL;
+const int mqtt_port = 1883;
 
-    // We start by connecting to a WiFi network
+WiFiClient espClient;
+PubSubClient client(espClient);
 
-    Serial.println();
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
-
-    WiFi.begin(ssid, password);
-
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+void callback(char *topic, byte *payload, unsigned int length) {
+ Serial.print("Message arrived in topic: ");
+ Serial.println(topic);
+ Serial.print("Message:");
+ for (int i = 0; i < length; i++) {
+    //  Serial.print((char) payload[i]);
+    input_json[i]=((char)payload[i]);
+ }
+ input_json[length]='\0';
+ Serial.println(input_json);
+ deserializeJson(doc_json, input_json);
+ Serial.print("motor1_speed:");
+ int speed = doc_json["speed"];
+ Serial.println(speed);
+ 
 }
 
-int value = 0;
+void setup() {
+ // Set software serial baud to 115200;
+ Serial.begin(115200);
+ // connecting to a WiFi network
+ WiFi.begin(ssid, password);
+ while (WiFi.status() != WL_CONNECTED) {
+     delay(500);
+     Serial.println("Connecting to WiFi..");
+ }
+ Serial.println("Connected to the WiFi network");
+ //connecting to a mqtt broker
+ client.setServer(mqtt_broker, mqtt_port);
+ client.setCallback(callback);
+ while (!client.connected()) {
+     String client_id = "esp32-client-";
+     client_id += String(WiFi.macAddress());
+     Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+     if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+         Serial.println("Public emqx mqtt broker connected");
+     } else {
+         Serial.print("failed with state ");
+         Serial.print(client.state());
+         delay(2000);
+     }
+ }
+ // publish and subscribe
+ client.publish(topic, "Hi EMQX I'm ESP32 ^^");
+ client.subscribe(topic);
+// json_error = deserializeJson(json_doc, json_output);
+//   if (!json_error) {
+    // payload_room = json_doc["room"];
+    // payload_msg = json_doc["msg"];
+    // Serial.println( "json to string:" ); 
+    // Serial.println( "payload_room:" ); 
+    // Serial.println(payload_room);
+    // Serial.println( "payload_msg:" ); 
+    // Serial.println(payload_msg);
+//   }
 
-void loop()
-{
-    // delay(5000);
-    // ++value;
+}
 
-    // Serial.print("connecting to ");
-    // Serial.println(host);
 
-    // // Use WiFiClient class to create TCP connections
-    // WiFiClient client;
-    // const int httpPort = 80;
-    // if (!client.connect(host, httpPort)) {
-    //     Serial.println("connection failed");
-    //     return;
-    // }
 
-    // // We now create a URI for the request
-    // String url = "/input/";
-    // url += streamId;
-    // url += "?private_key=";
-    // url += privateKey;
-    // url += "&value=";
-    // url += value;
-
-    // Serial.print("Requesting URL: ");
-    // Serial.println(url);
-
-    // // This will send the request to the server
-    // client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-    //              "Host: " + host + "\r\n" +
-    //              "Connection: close\r\n\r\n");
-    // unsigned long timeout = millis();
-    // while (client.available() == 0) {
-    //     if (millis() - timeout > 5000) {
-    //         Serial.println(">>> Client Timeout !");
-    //         client.stop();
-    //         return;
-    //     }
-    // }
-
-    // // Read all the lines of the reply from server and print them to Serial
-    // while(client.available()) {
-    //     String line = client.readStringUntil('\r');
-    //     Serial.print(line);
-    // }
-
-    // Serial.println();
-    // Serial.println("closing connection");
+void loop() {
+ client.loop();
 }
