@@ -1,2 +1,5 @@
 # BLDC Driver&Controller for Motor 4008/4010
-** Based on SimpleFOC Library and built with Arduino (PlatformIO) Struture **
+Based on SimpleFOC Library and built with Arduino (PlatformIO) Struture
+
+There are serval branch inside the code...
+the detailed description will be added later...
